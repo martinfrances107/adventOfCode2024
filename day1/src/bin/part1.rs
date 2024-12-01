@@ -21,13 +21,11 @@ fn parse_pair(input: &str) -> IResult<&str, (u32, u32)> {
 }
 
 fn part1(input: &str) -> u32 {
-    let mut left = vec![];
-    let mut right = vec![];
-    for line in input.lines() {
-        let (_remain, (a, b)) = parse_pair(line).expect("could not parse line");
-        left.push(a);
-        right.push(b)
-    }
+    let (mut left, mut right): (Vec<u32>, Vec<u32>) = input
+        .lines()
+        .filter_map(|line| parse_pair(line).ok())
+        .map(|(_remain, (a, b))| (a, b))
+        .unzip();
 
     left.sort();
     right.sort();
