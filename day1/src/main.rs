@@ -35,7 +35,13 @@ fn part1(input: &str) -> u32 {
     let b: u32 = left
         .iter()
         .zip(right.iter())
-        .map(|(left, right)| right - left)
+        .map(|(left, right)| {
+            if right > left {
+                right - left
+            } else {
+                left - right
+            }
+        })
         .sum();
 
     b
