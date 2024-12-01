@@ -40,19 +40,3 @@ fn part2(input: &str) -> u32 {
     }
     totals.iter().sum()
 }
-
-#[cfg(test)]
-mod test {
-
-    use super::*;
-    #[test]
-    fn example() {
-        let input = r"3   4
-4   3
-2   5
-1   3
-3   9
-3   3";
-        assert_eq!(part1(input), 11u32);
-    }
-}
