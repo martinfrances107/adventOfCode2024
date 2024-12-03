@@ -32,9 +32,9 @@ fn parse_instr(input: &str) -> IResult<&str, (u32, u32)> {
     Ok((remain, instruction))
 }
 
-fn part1(mut input: &str) -> u32 {
+fn part1(input: &str) -> u32 {
     let a = many1(parse_instr)(input);
-    if let Ok((tail, instrs)) = a {
+    if let Ok((_tail, instrs)) = a {
         println!("instruct {instrs:#?}");
         instrs.iter().map(|(x, y)| x * y).sum()
     } else {
@@ -46,39 +46,6 @@ fn part1(mut input: &str) -> u32 {
 mod test {
 
     use super::*;
-
-    #[test]
-    fn single() {
-        let input = r"    mul(2,3)";
-        assert_eq!(find_mul(input), Ok(("mul(2,3)", "    ")));
-
-        let input = r"xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))";
-        assert_eq!(
-            find_mul(input),
-            Ok((
-                "mul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))",
-                "x"
-            ))
-        );
-
-        let input = r"%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))";
-        if let Ok((start_with_mul, head)) = find_mul(input) {
-            println!("starts with {start_with_mul}");
-            println!("head {head}");
-            assert_eq!(
-                parse_mul(start_with_mul),
-                Ok(("+mul(32,64]then(mul(11,8)mul(8,5))", (5, 5)))
-            );
-        } else {
-            assert!(false);
-        }
-    }
-
-    #[test]
-    fn test_parse_mul() {
-        let input = r"mul(2,3)";
-        assert_eq!(parse_mul(input), Ok(("", (2, 3))));
-    }
 
     #[test]
     fn simple() {
