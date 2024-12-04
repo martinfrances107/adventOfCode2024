@@ -1,5 +1,4 @@
-use core::fmt::{self, write};
-use std::path::Display;
+use core::fmt::{self};
 
 static DIRECTION: [(i32, i32); 8] = [
     (-1, 0),  // N
@@ -37,7 +36,6 @@ fn part1(input: &str) -> (u32, Puzzle) {
     let mut x_positions = vec![];
     let mut lines = vec![];
 
-    let mut col_count = 0;
     let mut output = Puzzle { grid: vec![] };
     for (row, line) in input.lines().enumerate() {
         // create row, col pairs for every x
@@ -56,12 +54,10 @@ fn part1(input: &str) -> (u32, Puzzle) {
             output_line.push('.');
         }
         output.grid.push(output_line);
-        col_count += 1;
     }
 
     let mut xmas_count = 0;
     dbg!(&x_positions);
-    xmas_count = 0;
     for (row_idx, col_idx) in x_positions {
         println!("starting at a new X");
 
@@ -84,8 +80,6 @@ fn part1(input: &str) -> (u32, Puzzle) {
                 }
 
                 if let Some(row) = lines.get(candidate_row as usize) {
-                    // candidate_col += col_adjust;
-                    let active_col = candidate_col as usize;
                     println!("row {row:?}");
                     println!("looking for {}", wanted_char);
 
