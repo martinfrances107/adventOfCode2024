@@ -169,7 +169,7 @@ S.S.S.S.SS
 
         let (count, output) = part1(&input);
         println!("{output:#?}");
-        assert_eq!(count, 10);
+        assert_eq!(count, 18);
         // assert_eq!(expected, output.grid);
     }
 }
