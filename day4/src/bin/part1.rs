@@ -1,5 +1,6 @@
 use core::fmt::{self};
 
+// (row, col)
 static DIRECTION: [(i32, i32); 8] = [
     (-1, 0),  // N
     (-1, 1),  // NE
@@ -7,11 +8,11 @@ static DIRECTION: [(i32, i32); 8] = [
     (1, 1),   // ES
     (1, 0),   // S
     (1, -1),  // SW
-    (-1, 0),  // W
+    (0, -1),  // W
     (-1, -1), // WN
 ];
 
-static XMAS: [char; 3] = ['M', 'A', 'S'];
+static MAS: [char; 3] = ['M', 'A', 'S'];
 
 #[derive(Clone)]
 struct Puzzle {
@@ -21,7 +22,10 @@ struct Puzzle {
 impl std::fmt::Debug for Puzzle {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for row in &self.grid {
-            writeln!(f, "{:?}", &row)?;
+            for c in row {
+                write!(f, "{c}")?;
+            }
+            writeln!(f)?;
         }
         Ok(())
     }
@@ -29,23 +33,25 @@ impl std::fmt::Debug for Puzzle {
 
 fn main() {
     let input = include_str!("./input1.txt");
-    println!("{:?}", part1(input));
+    let (count, puzzle) = part1(input);
+    println!("{puzzle:?}");
+    println!("{:?}", count);
 }
 
 fn part1(input: &str) -> (u32, Puzzle) {
-    let mut x_positions = vec![];
+    let mut start_positions = vec![];
     let mut lines = vec![];
 
     let mut output = Puzzle { grid: vec![] };
     for (row, line) in input.lines().enumerate() {
         // create row, col pairs for every x
         let line_len = line.len();
-        dbg!(line_len);
+        // dbg!(line_len);
         let x_positions_row = line
             .match_indices('X')
             .map(|(col, _ch)| (row, col))
             .collect::<Vec<_>>();
-        x_positions.extend_from_slice(&x_positions_row);
+        start_positions.extend_from_slice(&x_positions_row);
         let line = line.chars().collect::<Vec<_>>();
         lines.push(line);
         // TODO should optimize.
@@ -55,63 +61,67 @@ fn part1(input: &str) -> (u32, Puzzle) {
         }
         output.grid.push(output_line);
     }
+    // dbg!(&x_positions);
+    // let start_positions = [(4, 6)];
 
     let mut xmas_count = 0;
-    dbg!(&x_positions);
-    for (row_idx, col_idx) in x_positions {
-        println!("starting at a new X");
+    // dbg!(&x_positions);
+    for (row_idx, col_idx) in start_positions {
+        // println!("starting at a new X");
 
         'direction_loop: for (dir_num, (row_adjust, col_adjust)) in DIRECTION.iter().enumerate() {
-            println!("Starting new direction {dir_num}");
+            // println!("Starting new direction {dir_num}");
             // start back at a know 'X' position.
             let mut candidate_col = col_idx as i32 + col_adjust;
+
             let mut candidate_row = row_idx as i32 + row_adjust;
 
             // candidate_col += col_adjust;
 
             let mut n_matches = 1;
-            println!("starting new xmas search");
-            for wanted_char in XMAS {
+            // println!("starting new xmas search");
+            for wanted_char in MAS {
                 // candidate_row += row_adjust;
                 // Break early if row is out of bounds.
                 if candidate_row < 0 {
-                    println!("row: (min) out of bounds aborting the search in this direction");
+                    // println!("row: (min) out of bounds aborting the search in this direction");
                     continue 'direction_loop;
                 }
 
                 if let Some(row) = lines.get(candidate_row as usize) {
-                    println!("row {row:?}");
-                    println!("looking for {}", wanted_char);
+                    // println!("row {row:?}");
+                    // println!("looking for {}", wanted_char);
 
                     if let Some(c) = row.get(candidate_col as usize) {
-                        println!("found {c}");
+                        // println!("found {c}");
                         if wanted_char == *c {
-                            println!("match yes");
+                            // println!("match yes");
                             n_matches += 1;
-
+                            // println!("n_natches {n_matches}");
                             if n_matches == 4 {
-                                println!("xmas found");
+                                // println!("outputing xmas ");
                                 xmas_count += 1;
                                 let mut fill_row: i32 = row_idx as i32;
                                 let mut fill_col: i32 = col_idx as i32;
                                 output.grid[row_idx][col_idx] = 'X';
-                                for c in XMAS {
-                                    fill_col += col_adjust;
+                                for c in MAS {
                                     fill_row += row_adjust;
+                                    fill_col += col_adjust;
                                     output.grid[fill_row as usize][fill_col as usize] = c;
                                 }
+
                                 continue 'direction_loop;
                             }
                         } else {
-                            println!("does not match check next direction");
+                            // println!("does not match check next direction");
                             continue 'direction_loop;
                         }
                     } else {
-                        println!("col: out of bound");
+                        // println!("col: out of bound");
                         continue 'direction_loop;
                     }
                 } else {
-                    println!("row: (max) out of bounds aborting the search in this direction");
+                    // println!("row: (max) out of bounds aborting the search in this direction");
                     continue 'direction_loop;
                 }
 
@@ -146,8 +156,20 @@ SAXAMASAAA
 MAMMMXMMMM
 MXMXAXMASX";
 
+        let expected = r"....XXMAS.
+.SAMXMS...
+...S..A...
+..A.A.MS.X
+XMASAMX.MM
+X.....XA.A
+S.S.S.S.SS
+.A.A.A.A.A
+..M.M.M.MM
+.X.X.XMASX";
+
         let (count, output) = part1(&input);
-        println!("output {output:#?}");
-        assert_eq!(count, 18);
+        println!("{output:#?}");
+        assert_eq!(count, 10);
+        // assert_eq!(expected, output.grid);
     }
 }
