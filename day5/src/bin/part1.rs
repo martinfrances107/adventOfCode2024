@@ -43,46 +43,44 @@ fn part1(input: &str) -> u32 {
         if let Ok((_remain, updates)) = parse_updates(updates_str) {
             //     // have rules have updates.
 
-            let is_passing = updates.iter().map(|update| {
-                // test every rule
-                for (l, r) in &rules {
-                    // Must contain both L and R.
-                    let l_pos = update.iter().position(|x| *l == *x);
-                    let r_pos = update.iter().position(|x| *r == *x);
-                    match (l_pos, r_pos) {
-                        (Some(l_index), Some(r_index)) => {
-                            if r_index < l_index {
-                                // Reject: L must come before R.
-                                return false;
-                            }
-                        }
-                        _ => {
-                            // rules does not apply.
-                            // Move onto next rule
-                        }
-                    }
-                }
-                // Failure short circuit here.. so return true
-                println!("passing update {:#?}", update);
-                true
-            });
-
             return updates
                 .iter()
-                .zip(is_passing)
-                .map(|(update, is_passing)| {
-                    if is_passing {
-                        let mid = update.len() / 2;
-                        update[mid]
-                    } else {
-                        0
+                .filter(|update| {
+                    // test every rule
+                    for (l, r) in &rules {
+                        // Must contain both L and R.
+                        let l_pos = update.iter().position(|x| *l == *x);
+                        let r_pos = update.iter().position(|x| *r == *x);
+                        match (l_pos, r_pos) {
+                            (Some(l_index), Some(r_index)) => {
+                                if r_index <= l_index {
+                                    // Reject: L must come before R.
+                                    return false;
+                                }
+                            }
+                            _ => {
+                                // rules does not apply.
+                                // Move onto next rule
+                            }
+                        }
                     }
+                    // Failure short circuit here.. so return true
+                    println!("passing update {:#?}", update);
+                    true
+                })
+                .map(|update| {
+                    let mid = update.len() / 2;
+                    update[mid]
                 })
                 .sum();
         }
+        {
+            println!("failed to parse updates");
+            panic!()
+        }
     }
 
-    println!("failed to updates");
+    println!("failed to parse rules");
     panic!();
 }
 
@@ -146,9 +144,8 @@ mod test {
 75,29,13
 75,97,47,61,53
 61,13,29
-97,13,75,29,47
-";
+97,13,75,29,47";
 
-        assert_eq!(part1(input), 143);
+        assert_eq!(part1(input), 144);
     }
 }
