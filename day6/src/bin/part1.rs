@@ -88,11 +88,7 @@ impl Turtle {
         if self.map.contains(&(next_row, next_col)) {
             self.path.map[next_row as usize][next_col as usize] = '#';
             // rotate 90 before walking.
-            if self.direction_index == 3 {
-                self.direction_index = 0;
-            } else {
-                self.direction_index += 1;
-            }
+            self.direction_index = (self.direction_index + 1) % 4;
             next_row = self.row as i32 + DIRECTION[self.direction_index][0];
             next_col = self.col as i32 + DIRECTION[self.direction_index][1];
         }
