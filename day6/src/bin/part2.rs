@@ -6,7 +6,7 @@ fn main() {
     println!("{:?}", part2(input));
 }
 
-// i32 as we walk to ask it there an obstacle as (-1, -1)
+// i32 here.. As we walk is needs to ask is there an obstacle as (-1, -1)
 type Map = HashSet<(i32, i32)>;
 
 // row, col
@@ -47,20 +47,6 @@ impl Display for Path {
             writeln!(f)?
         }
         writeln!(f, "")
-    }
-}
-
-impl Path {
-    fn squared_covered(&self) -> u32 {
-        let mut covered = 0;
-        for rows in &self.map {
-            for c in rows.iter() {
-                if *c == 'X' {
-                    covered += 1;
-                }
-            }
-        }
-        covered
     }
 }
 
@@ -112,7 +98,6 @@ impl Turtle {
 
         // Map "contains" a obstacle.
         if self.map.contains(&(next_row, next_col)) {
-            // println!("obstacle detected");
             self.path.map[next_row as usize][next_col as usize] = '#';
             // Rotate 90 before walking.
             next_direction_index = (self.state.direction_index + 1) % 4;
@@ -135,11 +120,9 @@ impl Turtle {
             self.moves = (self.moves + 1) % 10;
 
             self.path.map[self.state.row][self.state.col] = 'X';
-            // println!("moves{} ", self.moves);
 
             match &self.first_pos {
                 Some(first_state) => {
-                    // println!("state {:#?}", self.state);
                     if self.state == *first_state {
                         return Outcome::LoopDetected;
                     }
@@ -158,19 +141,14 @@ impl Turtle {
     }
 
     fn walk(&mut self) -> Outcome {
-        // println!("entry: walk");
         let mut attempts = 0;
-        // advance until boundary or loop detected
-        'walk: loop {
+        // Advance until boundary or loop detected.
+        loop {
             match self.advance() {
                 Outcome::Exit => return Outcome::Exit,
                 Outcome::LoopDetected => return Outcome::LoopDetected,
                 Outcome::Running => {
-                    // println!("running {} {}", self.state.row, self.state.col);
                     if attempts > 9999 {
-                        // println!("wtf");
-                        // println!("{}", self.path);
-                        // panic!("max number of retries exceeded.");
                         return Outcome::LoopDetected;
                     }
                 }
@@ -184,12 +162,12 @@ fn part2(input: &str) -> u32 {
     let mut col_max = 0;
     let mut row_max = 0;
 
-    // contains only obstacles
+    // Contains only obstacles.
     let mut original_map = Map::new();
     let mut player_col = 0;
     let mut player_row = 0;
 
-    // Construct map and turtle
+    // Construct map and turtle.
     for (row_index, row) in input.lines().enumerate() {
         row_max = row_index;
         for (col_index, c) in row.chars().enumerate() {
@@ -198,12 +176,12 @@ fn part2(input: &str) -> u32 {
             }
 
             if c == '^' {
-                // player position.
+                // Player position.
                 player_row = row_index;
                 player_col = col_index;
             }
 
-            // Add obstacle to map
+            // Add obstacle to map.
             if c == '#' {
                 original_map.insert((row_index as i32, col_index as i32));
             }
@@ -211,22 +189,14 @@ fn part2(input: &str) -> u32 {
     }
 
     let mut loop_count = 0;
-    // let mut turtle = Turtle::new(original_map, player_row, player_col, row_max, col_max);
-
+    let mut turtle = Turtle::new(original_map, player_row, player_col, row_max, col_max);
     for (row_index, row) in input.lines().enumerate() {
-        // row_max = row_index;
         for (col_index, c) in row.chars().enumerate() {
-            // println!("next obstable loop {} {}", row_index, col_index);
             if c != '#' {
-                let map = original_map.clone();
-                debug_assert_eq!(original_map.len(), map.len());
-                let mut turtle = Turtle::new(map, player_row, player_col, row_max, col_max);
-                // Has reset properly.
-                // debug_assert_eq!(turtle.map.len(), 8);
-
+                // let map = original_map.clone();
+                // debug_assert_eq!(original_map.len(), map.len());
+                // let mut turtle = Turtle::new(map, player_row, player_col, row_max, col_max);
                 let obs_inserted = turtle.map.insert((row_index as i32, col_index as i32));
-                //this position will loop
-                // let obs_inserted = turtle.map.insert((6, 3));
                 debug_assert!(obs_inserted);
 
                 match turtle.walk() {
@@ -239,16 +209,11 @@ fn part2(input: &str) -> u32 {
                         };
                         turtle.first_pos = None;
                         turtle.moves = 0;
-                        let success = turtle.map.remove(&(row_index as i32, col_index as i32));
-                        debug_assert!(success);
-                        // turtle.removed_obstacle(6, 3);
-
-                        // println!("LD: squares covered {}", turtle.path.squared_covered());
-                        // println!("{}", turtle.path);
+                        // let success = turtle.map.remove(&(row_index as i32, col_index as i32));
+                        // debug_assert!(success);
                     }
                     Outcome::Exit => {
-                        // println!("exit squares covered {}", turtle.path.squared_covered());
-                        // obstacle in this position did not lead to a loop
+                        // Obstacle in this position did not lead to a loop.
                         turtle.state = State {
                             row: player_row,
                             col: player_col,
@@ -256,16 +221,15 @@ fn part2(input: &str) -> u32 {
                         };
                         turtle.first_pos = None;
                         turtle.moves = 0;
-                        let success = turtle.map.remove(&(row_index as i32, col_index as i32));
-                        debug_assert!(success);
-                        // turtle.removed_obstacle(6, 3);
-                        // println!("{}", turtle.path);
                     }
 
                     Outcome::Running => {
                         panic!("Cannot stop walking while running");
                     }
                 }
+
+                let success = turtle.map.remove(&(row_index as i32, col_index as i32));
+                debug_assert!(success);
             }
         }
     }
@@ -320,7 +284,6 @@ mod test {
             }
         }
 
-        let mut loop_count = 0;
         let mut turtle = Turtle::new(original_map, player_row, player_col, row_max, col_max);
         println!("{}", turtle.path);
         assert_eq!(turtle.walk(), Outcome::Exit);
@@ -355,19 +318,18 @@ mod test {
                 }
 
                 if c == '^' {
-                    // player position.
+                    // Player position.
                     player_row = row_index;
                     player_col = col_index;
                 }
 
-                // Add obstacle to map
+                // Add obstacle to map.
                 if c == '#' {
                     original_map.insert((row_index as i32, col_index as i32));
                 }
             }
         }
 
-        let mut loop_count = 0;
         let mut turtle = Turtle::new(original_map, player_row, player_col, row_max, col_max);
 
         assert_eq!(turtle.walk(), Outcome::LoopDetected);
@@ -415,7 +377,6 @@ mod test {
             }
         }
 
-        let mut loop_count = 0;
         let mut turtle = Turtle::new(original_map, player_row, player_col, row_max, col_max);
         println!("{}", turtle.path);
         assert_eq!(turtle.walk(), Outcome::LoopDetected);
@@ -451,19 +412,18 @@ mod test {
                 }
 
                 if c == '^' {
-                    // player position.
+                    // Player position.
                     player_row = row_index;
                     player_col = col_index;
                 }
 
-                // Add obstacle to map
+                // Add obstacle to map.
                 if c == '#' {
                     original_map.insert((row_index as i32, col_index as i32));
                 }
             }
         }
 
-        let mut loop_count = 0;
         let mut turtle = Turtle::new(original_map, player_row, player_col, row_max, col_max);
         println!("{}", turtle.path);
         assert_eq!(turtle.walk(), Outcome::LoopDetected);
