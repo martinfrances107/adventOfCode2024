@@ -8,9 +8,10 @@ edition = "2021"
 name = "part1"
 test = true
 
-# [[bin]]
-# name = "part2"
-# test = true
+[[bin]]
+name = "part2"
+test = true
 
 [dependencies]
+itertools = "0.13.0"
 nom = "7.1.3"

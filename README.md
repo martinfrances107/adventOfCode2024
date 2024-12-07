@@ -19,5 +19,16 @@ Notes:
 
 ## day7
 
+  Part 1:
   A beautiful example of a handcrafted Generator
   ( Well in RUST I implemented this as a iterator! )
+
+  Part 2:
+  Operators Add, Mul, Merge
+
+  A good use of Itertools::multi_cartesian_product()
+  Future Refactor:
+    A run time of 2sec implies that I need to investigate performance.
+    All the main loop look like they could be simplified by
+    using fold and in particular reduce().
+    Also my nom parser could be rewritten.
