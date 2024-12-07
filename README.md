@@ -16,3 +16,8 @@ Notes:
     Ok((remain, instruction))
 }
 ```
+
+## day7
+
+  A beautiful example of a handcrafted Generator
+  ( Well in RUST I implemented this as a iterator! )
