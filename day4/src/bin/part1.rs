@@ -133,7 +133,10 @@ fn part1(input: &str) -> (u32, Puzzle) {
     (xmas_count, output)
 }
 
+#[cfg(test)]
 mod test {
+    use super::*;
+
     #[test]
     fn row() {
         let input = r"XMASXMASXM";

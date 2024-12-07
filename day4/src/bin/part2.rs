@@ -53,11 +53,7 @@ fn part2(input: &str) -> (u32, Puzzle) {
         start_positions.extend_from_slice(&a_positions);
         let line = line.chars().collect::<Vec<_>>();
         lines.push(line);
-        // TODO should optimize.
-        let mut output_line = vec![];
-        for _ in 0..line_len {
-            output_line.push('.');
-        }
+        let output_line = vec!['.'; line_len];
         output.grid.push(output_line);
     }
 
