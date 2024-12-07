@@ -1,4 +1,4 @@
-use core::fmt::{write, Display, Formatter, Result};
+use core::fmt::{Display, Formatter, Result};
 use std::collections::HashSet;
 
 fn main() {
@@ -40,7 +40,7 @@ impl Display for Path {
             }
             writeln!(f)?
         }
-        writeln!(f, "")
+        writeln!(f)
     }
 }
 

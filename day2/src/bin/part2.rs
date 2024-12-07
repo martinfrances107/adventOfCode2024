@@ -1,6 +1,4 @@
-use core::cell::LazyCell;
-
-use nom::bytes::complete::{is_a, tag};
+use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
 
 use nom::combinator::map_res;

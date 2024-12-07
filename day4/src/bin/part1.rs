@@ -134,7 +134,6 @@ fn part1(input: &str) -> (u32, Puzzle) {
 }
 
 mod test {
-    use super::*;
     #[test]
     fn row() {
         let input = r"XMASXMASXM";

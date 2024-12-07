@@ -46,7 +46,7 @@ impl Display for Path {
             }
             writeln!(f)?
         }
-        writeln!(f, "")
+        writeln!(f)
     }
 }
 
