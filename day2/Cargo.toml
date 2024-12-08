@@ -13,3 +13,4 @@ test = true
 
 [dependencies]
 nom = { workspace = true }
+itertools = { workspace = true }

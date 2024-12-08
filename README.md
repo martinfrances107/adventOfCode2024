@@ -2,11 +2,15 @@
 
 Notes:
 
-## Day1
+## Day 1 Zipping numbers
 
   A good examples of .filter_map() / .unzip() to parse a stream into two vectors for subsequent independent sorting.
 
-## Day3
+## Day 2: Reactor Safety
+
+  Part2: big_gaps_undamped() shows a good used of Itertools::tuple_window()
+
+## Day 3: Scambled computer code
 
   I was stuck until experimented with many_till.
 
@@ -17,7 +21,13 @@ Notes:
 }
 ```
 
-## day7
+## Day 4: X-Wing search
+
+## Day 5: Print Queue
+
+## Day 6: Move the furniture
+
+## Day7: Operators Add, Multiply and Merge
 
   Part 1:
   A beautiful example of a handcrafted Generator
@@ -33,11 +43,9 @@ Notes:
     using fold and in particular reduce().
     Also my nom parser could be rewritten.
 
-## day 8
+## Day 8: Frequency planning
 
-  Frequency planning:
-
-  Makes use of cartesian_product.
+  Makes use of Iterrools::cartesian_product.
   The correct data structure is :-
 
   ```rust

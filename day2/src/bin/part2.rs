@@ -1,9 +1,10 @@
 use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
-
 use nom::combinator::map_res;
 use nom::multi::separated_list1;
 use nom::IResult;
+
+use itertools::Itertools;
 
 fn main() {
     let input = include_str!("./input1.txt");
@@ -22,30 +23,12 @@ fn is_ascending_undamped(report: &Vec<u32>) -> bool {
     let mut last = u32::MIN;
     let mut is_ascending = true;
     for level in report {
-        // println!("level {} last {}", level, last);
         if *level <= last {
             is_ascending = false;
         }
         last = *level;
     }
     is_ascending
-}
-
-fn is_ascending_damped(report: &Vec<u32>) -> bool {
-    if is_ascending_undamped(report) {
-        true
-    } else {
-        for index in 0..report.len() {
-            let mut adjusted_report = report.clone();
-            adjusted_report.remove(index);
-            if is_ascending_undamped(&adjusted_report) {
-                return true;
-            }
-        }
-
-        // No single deletion  helped.
-        false
-    }
 }
 
 fn is_descending_undamped(report: &Vec<u32>) -> bool {
@@ -60,56 +43,20 @@ fn is_descending_undamped(report: &Vec<u32>) -> bool {
 
     is_descending
 }
-fn is_descending_damped(report: &Vec<u32>) -> bool {
-    if is_descending_undamped(report) {
-        true
-    } else {
-        for index in 0..report.len() {
-            dbg!(index);
-            let mut adjusted_report = report.clone();
-            adjusted_report.remove(index);
-            dbg!(&adjusted_report);
-            if is_descending_undamped(&adjusted_report) {
-                return true;
-            }
-        }
 
-        // No single deletion  helped.
-        false
-    }
-}
-
-fn big_gaps_undamped(report: &Vec<u32>) -> bool {
-    dbg!(&report);
-    let mut adjusted_report = report.clone();
+fn big_gaps_undamped(report: &[u32]) -> bool {
     let mut big_gaps = false;
-    // let mut iter = report.iter();
-    // let mut prev: u32 = *iter.next().expect("Must have at least one level");
-    let mut prev = adjusted_report.remove(0);
-    for level in adjusted_report {
-        println!("prev {prev} level {level} big {}", prev.abs_diff(level));
-        if prev.abs_diff(level) > 3 {
+    for (a, b) in report.iter().tuple_windows() {
+        if a.abs_diff(*b) > 3 {
             big_gaps = true;
         }
-        prev = level;
     }
     big_gaps
 }
 
-fn big_gaps_damped(report: &Vec<u32>) -> bool {
-    if !big_gaps_undamped(report) {
-        false
-    } else {
-        for index in 0..report.len() {
-            let mut adjusted_report = report.clone();
-            adjusted_report.remove(index);
-            if !big_gaps_undamped(&adjusted_report) {
-                return false;
-            }
-        }
-        // No single deletion  helped.
-        true
-    }
+#[inline]
+fn is_safe(report: &Vec<u32>) -> bool {
+    !big_gaps_undamped(report) && (is_ascending_undamped(report) || is_descending_undamped(report))
 }
 
 fn part2(input: &str) -> usize {
@@ -120,11 +67,18 @@ fn part2(input: &str) -> usize {
             parse_report(line).ok()
         })
         .filter(|(_remain, report)| {
-            let is_ascending = is_ascending_damped(report);
-            let is_descending = is_descending_damped(report);
-            let big_gaps = big_gaps_damped(report);
-
-            !big_gaps && (is_ascending || is_descending)
+            if !is_safe(report) {
+                for index in 0..report.len() {
+                    let mut new_report = (*report).clone();
+                    new_report.remove(index);
+                    if is_safe(&new_report) {
+                        return true;
+                    }
+                }
+                false
+            } else {
+                true
+            }
         })
         .count()
 }
