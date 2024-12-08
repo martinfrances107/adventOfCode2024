@@ -1,0 +1,17 @@
+[package]
+name = "day8"
+version = "0.1.0"
+edition = "2021"
+
+
+[[bin]]
+name = "part1"
+test = true
+
+# [[bin]]
+# name = "part2"
+# test = true
+
+[dependencies]
+itertools = "0.13.0"
+nom = "7.1.3"
