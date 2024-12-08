@@ -1,5 +1,4 @@
 use itertools::Itertools;
-
 use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
 use nom::combinator::{map, map_res};
@@ -41,8 +40,6 @@ static OPERATORS: [Operator; 3] = [Operator::Add, Operator::Mul, Operator::Merge
 fn sequences(n: usize) -> Vec<Vec<Operator>> {
     (0..n)
         .map(|_| OPERATORS.clone())
-        .collect::<Vec<_>>()
-        .into_iter()
         .multi_cartesian_product()
         .collect::<Vec<_>>()
 }
@@ -68,7 +65,7 @@ fn parse_line(input: &str) -> IResult<&str, Line> {
 }
 
 fn part2(input: &str) -> u64 {
-    let lines = input
+    input
         .lines()
         .map(|line| parse_line(line))
         .filter_map(|res| {
@@ -78,38 +75,31 @@ fn part2(input: &str) -> u64 {
                 None
             }
         })
-        .collect::<Vec<_>>();
-
-    let mut sum = 0;
-    'line_loop: for line in lines {
-        let Line { numbers, total } = line;
-        let n_operators = numbers.len() - 1;
-        let op_lists = sequences(n_operators);
-        // dbg!(&op_lists);
-        for op_list in &op_lists {
-            let mut iter = numbers.iter();
-            let mut line_sum = *iter.next().expect("must have at least one number");
-            // println!("first number {line_sum}");
-            // dbg!(line_sum);
-            // dbg!(&op_list);
-            for (num, operator) in iter.zip(op_list) {
-                match operator {
-                    Operator::Add => line_sum += num,
-                    Operator::Mul => line_sum *= num,
-                    Operator::Merge => {
-                        let sum_string = line_sum.to_string();
-                        let new_sum = format!("{sum_string}{num}");
-                        line_sum = new_sum.parse::<u64>().unwrap();
+        .map(|line| {
+            let Line { numbers, total } = line;
+            let n_operators = numbers.len() - 1;
+            let op_lists = sequences(n_operators);
+            for op_list in &op_lists {
+                let mut iter = numbers.iter();
+                let mut line_sum = *iter.next().expect("must have at least one number");
+                for (num, operator) in iter.zip(op_list) {
+                    match operator {
+                        Operator::Add => line_sum += num,
+                        Operator::Mul => line_sum *= num,
+                        Operator::Merge => {
+                            let sum_string = line_sum.to_string();
+                            let new_sum = format!("{sum_string}{num}");
+                            line_sum = new_sum.parse::<u64>().unwrap();
+                        }
                     }
                 }
+                if line_sum == total {
+                    return total;
+                }
             }
-            if line_sum == total {
-                sum += line_sum;
-                continue 'line_loop;
-            }
-        }
-    }
-    sum
+            0
+        })
+        .sum()
 }
 
 #[cfg(test)]
