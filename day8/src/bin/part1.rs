@@ -40,7 +40,7 @@ fn part1(input: &str) -> u32 {
     for (char, freq_store) in &antenna_store {
         println!("antenna {char}");
         let fs2 = freq_store.clone();
-        for ((row1, col1), (row2, col2)) in freq_store.into_iter().cartesian_product(fs2.iter()) {
+        for ((row1, col1), (row2, col2)) in freq_store.iter().cartesian_product(fs2.iter()) {
             println!("testing {} {}  --- {} {}", row1, col1, row2, col2);
             if *row1 == *row2 && *col1 == *col2 {
                 println!("diagonal");
