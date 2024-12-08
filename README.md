@@ -32,3 +32,14 @@ Notes:
     All the main loop look like they could be simplified by
     using fold and in particular reduce().
     Also my nom parser could be rewritten.
+
+## day 8
+
+  Frequency planning:
+
+  Makes use of cartesian_product.
+  The correct data structure is :-
+
+  ```rust
+  let map: HashMap<char, HashSet<(usize, usize)>>
+  ```
