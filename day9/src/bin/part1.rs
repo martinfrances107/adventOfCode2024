@@ -71,7 +71,6 @@ fn generate_disc_map(input: &str) -> Vec<Option<u64>> {
         })
         .collect();
 
-    // println!("fragments {fragments:#?}");
     fragments.into_iter().flatten().collect()
 }
 
