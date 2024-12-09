@@ -1,5 +1,3 @@
-static CHAR_DIGITS: [char; 10] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-
 fn main() {
     let input = include_str!("./input1.txt");
 
@@ -21,21 +19,18 @@ fn part1(input: &str) -> u64 {
     }
 }
 
-fn checksum(input: &[char]) -> u64 {
+fn checksum(input: &[Option<u64>]) -> u64 {
     input
         .iter()
         .enumerate()
-        .map(|(i, c)| {
-            // ignore tailing '.' chars
-            match String::from(*c).parse::<u64>() {
-                Ok(n) => n * i as u64,
-                Err(_) => 0,
-            }
+        .map(|(i, num)| match num {
+            Some(num) => i as u64 * *num,
+            None => 0,
         })
         .sum()
 }
 
-fn reorder(line: &mut [char]) -> bool {
+fn reorder(line: &mut [Option<u64>]) -> bool {
     let len = line.len();
     for _ in 0..len {
         if !shuffle(line) {
@@ -45,55 +40,44 @@ fn reorder(line: &mut [char]) -> bool {
     panic!("Advanced beyond point where shuffling should have stopped");
 }
 
-fn generate_disc_map(input: &str) -> Vec<char> {
-    let a = input
-        .chars()
-        .map(|c| {
-            let n: u8 = String::from(c).parse().expect("must have number");
-            n
-        })
-        .collect::<Vec<_>>();
+fn generate_disc_map(input: &str) -> Vec<Option<u64>> {
+    let a = input.chars().collect::<Vec<_>>();
 
-    let fragments: Vec<Vec<char>> = a
+    let fragments: Vec<Vec<Option<u64>>> = a
         .chunks(2)
         .enumerate()
         .map(|(block_id, pair_iter)| {
             // decode
-            let block_id_char = block_id.to_string().chars().next().unwrap();
-            if !CHAR_DIGITS.contains(&block_id_char) {
-                panic!("bad decode of block_id_char");
-            }
-            let mut fragment = vec![];
-            match pair_iter {
-                [block_size, free_space] => {
-                    for _ in 0..*block_size {
-                        fragment.push(block_id_char)
-                    }
 
-                    let f_len = fragment.len();
-                    let additional_space = *free_space as usize;
-                    fragment.resize(f_len + additional_space, '.');
-                }
-                [block_size] => {
-                    for _ in 0..*block_size {
-                        fragment.push(block_id_char)
-                    }
-                }
-                _ => {
-                    panic!("none or more than 2");
-                }
+            let mut fragment: Vec<Option<u64>> = vec![];
+            // Panics if block size is not seem.
+            let block_size: u32 = pair_iter
+                .first()
+                .unwrap()
+                .to_digit(10)
+                .expect("must decode block size");
+            for _ in 0..block_size {
+                fragment.push(Some(block_id as u64))
+            }
+
+            if let Some(free_space_char) = pair_iter.get(1) {
+                let free_space = free_space_char.to_digit(10).unwrap();
+                let f_len = fragment.len();
+                let additional_space = free_space as usize;
+                fragment.resize(f_len + additional_space, None);
             }
 
             fragment
         })
         .collect();
 
+    // println!("fragments {fragments:#?}");
     fragments.into_iter().flatten().collect()
 }
 
-fn shuffle(input: &mut [char]) -> bool {
-    let first_blank = input.iter().position(|x| *x == '.');
-    let last_num = input.iter().rposition(|x| CHAR_DIGITS.contains(x));
+fn shuffle(input: &mut [Option<u64>]) -> bool {
+    let first_blank = input.iter().position(|x| x.is_none());
+    let last_num = input.iter().rposition(|x| x.is_some());
     match (first_blank, last_num) {
         (Some(first), Some(last)) => {
             if first == last {
@@ -108,8 +92,6 @@ fn shuffle(input: &mut [char]) -> bool {
             }
         }
         (None, Some(_last)) => {
-            // shuffling complete.
-            // all dots removed.
             panic!("no longer good");
         }
         (Some(_first), None) => {
@@ -129,17 +111,46 @@ mod test {
     #[test]
     fn example() {
         let input = r"12345";
-        let expected = "0..111....22222".chars().collect::<Vec<char>>();
+        let expected = "0..111....22222"
+            .chars()
+            .map(|c| {
+                // h
+                let num = c.to_digit(10);
+                match num {
+                    Some(n) => Some(n as u64),
+                    None => None,
+                }
+            })
+            .collect::<Vec<Option<u64>>>();
+
         assert_eq!(generate_disc_map(input), expected);
 
         let input = "90909";
-        let expected = "000000000111111111222222222".chars().collect::<Vec<_>>();
+        let expected = "000000000111111111222222222"
+            .chars()
+            .map(|c| {
+                // a
+                let num = c.to_digit(10);
+                match num {
+                    Some(n) => Some(n as u64),
+                    None => None,
+                }
+            })
+            .collect::<Vec<Option<u64>>>();
         assert_eq!(generate_disc_map(input), expected);
 
         let input = r"2333133121414131402";
         let expected = "00...111...2...333.44.5555.6666.777.888899"
             .chars()
-            .collect::<Vec<char>>();
+            .map(|c| {
+                // a
+                let num = c.to_digit(10);
+                match num {
+                    Some(n) => Some(n as u64),
+                    None => None,
+                }
+            })
+            .collect::<Vec<Option<u64>>>();
         assert_eq!(generate_disc_map(input), expected);
     }
 
@@ -151,17 +162,37 @@ mod test {
             "022111....222..",
             "0221112...22...",
             "02211122..2....",
-            "022111222......",
+            "022111222.....x",
         ];
 
         for pair in steps.windows(2) {
             match pair {
                 [first, second] => {
-                    let mut input = first.chars().collect::<Vec<_>>();
-                    let expected = second.chars().collect::<Vec<_>>();
+                    let mut input = first
+                        .chars()
+                        .map(|c| {
+                            // a
+                            let num = c.to_digit(10);
+                            match num {
+                                Some(n) => Some(n as u64),
+                                None => None,
+                            }
+                        })
+                        .collect::<Vec<Option<u64>>>();
+                    let expected = second
+                        .chars()
+                        .map(|c| {
+                            // a
+                            let num = c.to_digit(10);
+                            match num {
+                                Some(n) => Some(n as u64),
+                                None => None,
+                            }
+                        })
+                        .collect::<Vec<Option<u64>>>();
                     let did_shuffle = shuffle(&mut input);
                     assert!(did_shuffle);
-                    println!("input {:#?}", &input);
+                    // println!("input {:#?}", &input);
                     assert_eq!(input, expected);
                 }
                 [_one] => {
@@ -198,11 +229,31 @@ mod test {
         for pair in steps.windows(2) {
             match pair {
                 [first, second] => {
-                    let mut input = first.chars().collect::<Vec<_>>();
-                    let expected = second.chars().collect::<Vec<_>>();
+                    let mut input = first
+                        .chars()
+                        .map(|c| {
+                            // a
+                            let num = c.to_digit(10);
+                            match num {
+                                Some(n) => Some(n as u64),
+                                None => None,
+                            }
+                        })
+                        .collect::<Vec<Option<u64>>>();
+                    let expected = second
+                        .chars()
+                        .map(|c| {
+                            // a
+                            let num = c.to_digit(10);
+                            match num {
+                                Some(n) => Some(n as u64),
+                                None => None,
+                            }
+                        })
+                        .collect::<Vec<Option<u64>>>();
                     let did_shuffle = shuffle(&mut input);
                     assert!(did_shuffle);
-                    println!("input {:#?}", &input);
+                    // println!("input {:#?}", &input);
                     assert_eq!(input, expected);
                 }
                 [_one] => {
@@ -222,23 +273,60 @@ mod test {
     fn reorder_check() {
         let line = "12345";
         let mut dm = generate_disc_map(line);
-        let expected = "022111222......".chars().collect::<Vec<_>>();
+        let expected = "022111222......"
+            .chars()
+            .map(|c| {
+                // a
+                let num = c.to_digit(10);
+                match num {
+                    Some(n) => Some(n as u64),
+                    None => None,
+                }
+            })
+            .collect::<Vec<Option<u64>>>();
         assert!(reorder(&mut dm));
         assert_eq!(dm, expected);
 
         let mut line = "00...111...2...333.44.5555.6666.777.888899"
             .chars()
-            .collect::<Vec<_>>();
+            .map(|c| {
+                // a
+                let num = c.to_digit(10);
+                match num {
+                    Some(n) => Some(n as u64),
+                    None => None,
+                }
+            })
+            .collect::<Vec<Option<u64>>>();
         let expected = "0099811188827773336446555566.............."
             .chars()
-            .collect::<Vec<_>>();
+            .map(|c| {
+                // a
+                let num = c.to_digit(10);
+                match num {
+                    Some(n) => Some(n as u64),
+                    None => None,
+                }
+            })
+            .collect::<Vec<Option<u64>>>();
         assert!(reorder(&mut line));
         assert_eq!(line, expected);
     }
 
     #[test]
     fn checksum_test() {
-        let line = "0099811188827773336446555566".chars().collect::<Vec<_>>();
+        let line = "0099811188827773336446555566"
+            .chars()
+            .map(|c| {
+                // a
+                let num = c.to_digit(10);
+                match num {
+                    Some(n) => Some(n as u64),
+                    None => panic!("should always decode here"),
+                }
+            })
+            .collect::<Vec<Option<u64>>>();
+        // println!("line {line:#?}");
         assert_eq!(checksum(&line), 1928);
     }
 
