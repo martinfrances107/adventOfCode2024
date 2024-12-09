@@ -1,3 +1,7 @@
+use core::panic;
+
+static CHAR_DIGITS: [char; 10] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+
 fn main() {
     let input = include_str!("./input1.txt");
     println!("{:?}", part1(input));
@@ -7,6 +11,7 @@ fn part1(input: &str) -> u64 {
     let mut dm = generate_disc_map(input);
     // Should always
     if reorder(&mut dm) {
+        println!("{dm:#?}");
         checksum(&dm)
     } else {
         panic!("failed to reorder");
@@ -51,6 +56,9 @@ fn generate_disc_map(input: &str) -> Vec<char> {
         .map(|(block_id, pair_iter)| {
             // decode
             let block_id_char = block_id.to_string().chars().next().unwrap();
+            if !CHAR_DIGITS.contains(&block_id_char) {
+                panic!("bad decode of block_id_char");
+            }
             let mut fragment = vec![];
             match pair_iter {
                 [block_size, free_space] => {
@@ -87,9 +95,17 @@ fn shuffle(input: &mut [char]) -> bool {
             input.swap(first, last);
             true
         }
-        _ => {
-            // No shuffle possible
+        (None, Some(_last)) => {
+            // shuffling complete.
+            // all dots removed.
             false
+        }
+        (Some(_first), None) => {
+            panic!("bad failure mode");
+        }
+        (None, None) => {
+            // No shuffle possible
+            panic!("both should never fail")
         }
     }
 }
