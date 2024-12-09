@@ -1,0 +1,17 @@
+[package]
+name = "day9"
+version = "0.1.0"
+edition = "2021"
+
+
+[[bin]]
+name = "part1"
+test = true
+
+# [[bin]]
+# name = "part2"
+# test = true
+
+[dependencies]
+nom = { workspace = true }
+itertools = { workspace = true }
