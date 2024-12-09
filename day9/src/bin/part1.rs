@@ -11,7 +11,6 @@ fn part1(input: &str) -> u64 {
     let mut dm = generate_disc_map(input);
     // Should always
     if reorder(&mut dm) {
-        println!("{dm:#?}");
         checksum(&dm)
     } else {
         panic!("failed to reorder");
@@ -23,8 +22,11 @@ fn checksum(input: &[char]) -> u64 {
         .iter()
         .enumerate()
         .map(|(i, c)| {
-            let n: u64 = String::from(*c).parse().expect("must have number");
-            n * i as u64
+            // ignore tailing '.' chars
+            match String::from(*c).parse::<u64>() {
+                Ok(n) => n * i as u64,
+                Err(_) => 0,
+            }
         })
         .sum()
 }
@@ -92,8 +94,16 @@ fn shuffle(input: &mut [char]) -> bool {
     let last_num = input.iter().rposition(|x| *x != '.');
     match (first_blank, last_num) {
         (Some(first), Some(last)) => {
-            input.swap(first, last);
-            true
+            if first == last {
+                panic!("Cannot have both blank and number in the same position");
+            }
+            if first > last {
+                // Cannot shuffle as the first blank is now to the right of the numbers.
+                false
+            } else {
+                input.swap(first, last);
+                true
+            }
         }
         (None, Some(_last)) => {
             // shuffling complete.
@@ -119,6 +129,11 @@ mod test {
         let input = r"12345";
         let expected = "0..111....22222".chars().collect::<Vec<char>>();
         assert_eq!(generate_disc_map(input), expected);
+
+        let input = "90909";
+        let expected = "000000000111111111222222222".chars().collect::<Vec<_>>();
+        assert_eq!(generate_disc_map(input), expected);
+
         let input = r"2333133121414131402";
         let expected = "00...111...2...333.44.5555.6666.777.888899"
             .chars()
@@ -140,10 +155,16 @@ mod test {
 
     #[test]
     fn reorder_check() {
+        let line = "12345";
+        let mut dm = generate_disc_map(line);
+        let expected = "022111222.".chars().collect::<Vec<_>>();
+        assert!(reorder(&mut dm));
+        assert_eq!(dm, expected);
+
         let mut line = "00...111...2...333.44.5555.6666.777.888899"
             .chars()
             .collect::<Vec<_>>();
-        let expected = "0099811188827773336446555566".chars().collect::<Vec<_>>();
+        let expected = "0099811188827773336446555566..".chars().collect::<Vec<_>>();
         assert!(reorder(&mut line));
         assert_eq!(line, expected);
     }
