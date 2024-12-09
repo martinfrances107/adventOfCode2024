@@ -85,14 +85,14 @@ fn generate_disc_map(input: &str) -> String {
 }
 
 fn shuffle(input: &str) -> Option<String> {
-    let first_blank = input.find(|x| x == '.');
+    let first_blank = input.find('.');
     let last_num = input.rfind(|x| x != '.');
     match (first_blank, last_num) {
         (Some(first), Some(last)) => {
             // swap
             let mut chars: Vec<_> = input.chars().collect();
             chars.swap(first, last);
-            return Some(chars.into_iter().collect());
+            Some(chars.into_iter().collect())
         }
         _ => {
             // No shuffle possible
@@ -119,7 +119,6 @@ mod test {
     #[test]
     fn shuffle09() {
         let input = r"00...111...2...333.44.5555.6666.777.888899";
-        let mut line = String::from(input);
         let shuffled = shuffle(&input);
         assert_eq!(
             shuffled,
