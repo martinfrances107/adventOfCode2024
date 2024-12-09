@@ -108,11 +108,11 @@ fn part2(input: &str) -> u64 {
     spaces.sort_by(|a, b| a.start_addr.cmp(&b.start_addr));
 
     // for every file  try to place in the first blank first.
-    for file in &mut files {
+    '_file_id_search: for file in &mut files {
         let mut hole = None;
         let mut index_to_remove = None;
         'space_search: for (i, space) in spaces.iter_mut().enumerate() {
-            // Will file fit into space.
+            // Will file fit into space?
             if file.size <= space.size {
                 if space.start_addr > file.start_addr {
                     break 'space_search;
@@ -126,26 +126,36 @@ fn part2(input: &str) -> u64 {
                 // Move the file to a new start addr.
                 file.start_addr = space.start_addr;
 
-                if file.size == space.size {
+                space.start_addr += file.size;
+                index_to_remove = if file.size == space.size {
                     // The blank space is consumed.
-                    index_to_remove = Some(i);
+                    space.size = 0;
+                    Some(i)
                 } else {
                     // Shift up and shrink size of filled space.
-                    space.start_addr += file.size;
                     space.size -= file.size;
-                }
-                // A move has occurred. stop space search.
+                    None
+                };
+                // A move has occurred. stop search.
                 break 'space_search;
+            } else {
+                hole = None;
+                index_to_remove = None;
             }
         }
 
-        // Removed comsumed space.
+        let mut resort = false;
+        // Removed consumed space.
         if let Some(index) = index_to_remove {
             spaces.remove(index);
+            resort = true;
         }
         // if the file was moved then there is a hole.
         if let Some(new_blank) = hole {
             spaces.push(new_blank);
+            resort = true;
+        }
+        if resort {
             spaces.sort_by(|a, b| a.start_addr.cmp(&b.start_addr));
         }
     }
