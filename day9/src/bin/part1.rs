@@ -4,41 +4,39 @@ fn main() {
 }
 
 fn part1(input: &str) -> u64 {
-    let dm = generate_disc_map(input);
+    let mut dm = generate_disc_map(input);
     // Should always
-    let reordered = reorder(dm);
-
-    // Compute checksum
-
-    checksum(&reordered)
+    if reorder(&mut dm) {
+        checksum(&dm)
+    } else {
+        panic!("failed to reorder");
+    }
 }
 
-fn checksum(input: &str) -> u64 {
+fn checksum(input: &[char]) -> u64 {
     input
-        .chars()
+        .iter()
         .enumerate()
         .map(|(i, c)| {
-            let n: u64 = String::from(c).parse().expect("must have number");
+            let n: u64 = String::from(*c).parse().expect("must have number");
             n * i as u64
         })
         .sum()
 }
-fn reorder(mut line: String) -> String {
+
+fn reorder(line: &mut Vec<char>) -> bool {
     let len = line.len();
     for _ in 0..len {
-        match shuffle(&line) {
-            Some(next) => {
-                // println!("next {next}");
-                let len = line.len() - 1;
-                line = next[0..len].to_string();
-            }
-            None => return line,
+        if shuffle(line) {
+            line.pop();
+        } else {
+            return true;
         }
     }
     panic!("Advanced beyond point where shuffling should have stopped");
 }
 
-fn generate_disc_map(input: &str) -> String {
+fn generate_disc_map(input: &str) -> Vec<char> {
     let a = input
         .chars()
         .map(|c| {
@@ -47,25 +45,26 @@ fn generate_disc_map(input: &str) -> String {
         })
         .collect::<Vec<_>>();
 
-    let fragments: Vec<String> = a
+    let fragments: Vec<Vec<char>> = a
         .chunks(2)
         .enumerate()
         .map(|(block_id, pair_iter)| {
             // decode
-            let block_id_str = block_id.to_string();
-            let mut fragment = String::from("");
+            let block_id_char = block_id.to_string().chars().next().unwrap();
+            let mut fragment = vec![];
             match pair_iter {
                 [block_size, free_space] => {
                     for _ in 0..*block_size {
-                        fragment.push_str(&block_id_str)
+                        fragment.push(block_id_char)
                     }
-                    for _ in 0..*free_space {
-                        fragment.push('.');
-                    }
+
+                    let f_len = fragment.len();
+                    let additional_space = *free_space as usize;
+                    fragment.resize(f_len + additional_space, '.');
                 }
                 [block_size] => {
                     for _ in 0..*block_size {
-                        fragment.push_str(&block_id_str)
+                        fragment.push(block_id_char)
                     }
                 }
                 _ => {
@@ -76,27 +75,21 @@ fn generate_disc_map(input: &str) -> String {
             fragment
         })
         .collect();
-    let mut disc_map = String::new();
-    for frag in fragments {
-        disc_map.push_str(&frag);
-    }
 
-    disc_map
+    fragments.into_iter().flatten().collect()
 }
 
-fn shuffle(input: &str) -> Option<String> {
-    let first_blank = input.find('.');
-    let last_num = input.rfind(|x| x != '.');
+fn shuffle(input: &mut [char]) -> bool {
+    let first_blank = input.iter().position(|x| *x == '.');
+    let last_num = input.iter().rposition(|x| *x != '.');
     match (first_blank, last_num) {
         (Some(first), Some(last)) => {
-            // swap
-            let mut chars: Vec<_> = input.chars().collect();
-            chars.swap(first, last);
-            Some(chars.into_iter().collect())
+            input.swap(first, last);
+            true
         }
         _ => {
             // No shuffle possible
-            None
+            false
         }
     }
 }
@@ -108,33 +101,40 @@ mod test {
     #[test]
     fn example() {
         let input = r"12345";
-        assert_eq!(generate_disc_map(input), "0..111....22222");
+        let expected = "0..111....22222".chars().collect::<Vec<char>>();
+        assert_eq!(generate_disc_map(input), expected);
         let input = r"2333133121414131402";
-        assert_eq!(
-            generate_disc_map(input),
-            "00...111...2...333.44.5555.6666.777.888899"
-        );
+        let expected = "00...111...2...333.44.5555.6666.777.888899"
+            .chars()
+            .collect::<Vec<char>>();
+        assert_eq!(generate_disc_map(input), expected);
     }
 
     #[test]
     fn shuffle09() {
-        let input = r"00...111...2...333.44.5555.6666.777.888899";
-        let shuffled = shuffle(&input);
-        assert_eq!(
-            shuffled,
-            Some(String::from("009..111...2...333.44.5555.6666.777.88889."))
-        );
+        let mut line = r"00...111...2...333.44.5555.6666.777.888899"
+            .chars()
+            .collect::<Vec<char>>();
+        assert!(shuffle(&mut line));
+        let expected = "009..111...2...333.44.5555.6666.777.88889."
+            .chars()
+            .collect::<Vec<char>>();
+        assert_eq!(line, expected);
     }
 
     #[test]
     fn reorder_check() {
-        let dm = String::from("00...111...2...333.44.5555.6666.777.888899");
-        assert_eq!(reorder(dm), "0099811188827773336446555566");
+        let mut line = "00...111...2...333.44.5555.6666.777.888899"
+            .chars()
+            .collect::<Vec<_>>();
+        let expected = "0099811188827773336446555566".chars().collect::<Vec<_>>();
+        assert!(reorder(&mut line));
+        assert_eq!(line, expected);
     }
 
     #[test]
     fn checksum_test() {
-        let line = String::from("0099811188827773336446555566");
+        let line = "0099811188827773336446555566".chars().collect::<Vec<_>>();
         assert_eq!(checksum(&line), 1928);
     }
 
