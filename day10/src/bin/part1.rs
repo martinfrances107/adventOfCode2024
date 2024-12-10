@@ -97,22 +97,19 @@ fn part1(input: &str) -> usize {
 
     let mut out_map = Map::new(row_max + 1, col_max + 1);
 
-    let heads = p_map
-        .iter()
-        .filter_map(|(pos, value)| {
-            if *value == 0 {
-                // trail head found
-                Some((*pos, *value))
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<(IVec2, u32)>>();
-
     // Keyed by head_id
     let mut walkable_endpoints = HashMap::<i32, HashSet<IVec2>>::new();
 
-    for start_point in heads.into_iter() {
+    let heads = p_map.iter().filter_map(|(pos, value)| {
+        if *value == 0 {
+            // trail head found
+            Some((*pos, *value))
+        } else {
+            None
+        }
+    });
+
+    for start_point in heads {
         // Cannot use .enumerate() in the line above to generate a id.  The source is a hashmap
         // and so the order is not deterministic.
         let head_id = generate_head_id(start_point.0);
@@ -125,7 +122,7 @@ fn part1(input: &str) -> usize {
             // A pool of all new node that match the hike criteria.
             let new_nodes: Vec<_> = unvisited_nodes
                 .iter()
-                .map(|node| {
+                .flat_map(|node| {
                     // Newly discovered after search of 4 compass points.
                     let mut newly_discovered = vec![];
                     for offset in DIRECTION {
@@ -144,7 +141,6 @@ fn part1(input: &str) -> usize {
                     }
                     newly_discovered
                 })
-                .flatten()
                 .collect();
 
             for (pos, height) in &new_nodes {
