@@ -115,15 +115,15 @@ fn part1(input: &str) -> usize {
     for start_point in heads.into_iter() {
         // Cannot use .enumerate() in the line above to generate a id.  The source is a hashmap
         // and so the order is not deterministic.
-
         let head_id = generate_head_id(start_point.0);
+
         let mut walk_count = 0;
         let mut unvisited_nodes = vec![start_point];
         out_map.rows[start_point.0.x as usize][start_point.0.y as usize] = '0';
 
         'walking: loop {
-            // A pool of all new node match the hike criteria.
-            let new_nodes_sprawl = unvisited_nodes
+            // A pool of all new node that match the hike criteria.
+            let new_nodes: Vec<_> = unvisited_nodes
                 .iter()
                 .map(|node| {
                     // Newly discovered after search of 4 compass points.
@@ -131,34 +131,32 @@ fn part1(input: &str) -> usize {
                     for offset in DIRECTION {
                         let search_pos = node.0 + offset;
                         if let Some(next_height) = p_map.get(&search_pos) {
-                            let expected_height = node.1 + 1;
-                            // dbg!(search_pos);
-                            if *next_height == expected_height {
-                                if expected_height == 0 {
+                            if *next_height == node.1 + 1 {
+                                if *next_height == 0 {
                                     panic!()
                                 }
                                 out_map.rows[search_pos.x as usize][search_pos.y as usize] =
-                                    char::from_digit(expected_height, 10).unwrap();
+                                    char::from_digit(*next_height, 10).unwrap();
 
-                                newly_discovered.push((search_pos, expected_height));
+                                newly_discovered.push((search_pos, *next_height));
                             }
                         }
                     }
                     newly_discovered
                 })
-                .collect::<Vec<_>>();
+                .flatten()
+                .collect();
 
-            let new_nodes: Vec<_> = new_nodes_sprawl.into_iter().flatten().collect();
-            for node in &new_nodes {
-                if node.1 == 9 {
+            for (pos, height) in &new_nodes {
+                if *height == 9 {
                     match walkable_endpoints.get_mut(&head_id) {
                         // insert(node.0)
                         Some(endpoint) => {
                             // a
-                            endpoint.insert(node.0);
+                            endpoint.insert(*pos);
                         }
                         None => {
-                            let endpoint_list = HashSet::from([node.0]);
+                            let endpoint_list = HashSet::from([*pos]);
                             walkable_endpoints.insert(head_id, endpoint_list);
                         }
                     };
@@ -233,7 +231,7 @@ mod test {
 ...8..3
 ...9..2
 .....01";
-        assert_eq!(part1(input), 30);
+        assert_eq!(part1(input), 3);
     }
 
     #[test]
@@ -247,6 +245,6 @@ mod test {
 01329801
 10456732
 ";
-        assert_eq!(part1(input), 30);
+        assert_eq!(part1(input), 36);
     }
 }
