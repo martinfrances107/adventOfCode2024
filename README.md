@@ -51,3 +51,7 @@ Notes:
   ```rust
   let map: HashMap<char, HashSet<(usize, usize)>>
   ```
+
+## Day 10: Hiking Routes
+
+  Want to return to this problem and visualize the walk.

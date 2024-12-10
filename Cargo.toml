@@ -9,9 +9,11 @@ members = [
   "./day7",
   "./day8",
   "./day9",
+  "./day10",
 ]
 resolver = "2"
 
 [workspace.dependencies]
+glam = "0.29.2"
 nom = "7.1.3"
 itertools = "0.13.0"
