@@ -146,9 +146,7 @@ fn part1(input: &str) -> usize {
             for (pos, height) in &new_nodes {
                 if *height == 9 {
                     match walkable_endpoints.get_mut(&head_id) {
-                        // insert(node.0)
                         Some(endpoint) => {
-                            // a
                             endpoint.insert(*pos);
                         }
                         None => {
