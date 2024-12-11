@@ -1,5 +1,8 @@
+#![feature(linked_list_cursors)]
+
 use core::fmt::Display;
 use count_digits::CountDigits;
+
 use std::collections::LinkedList;
 use std::fmt::Debug;
 
@@ -23,42 +26,51 @@ impl Line {
                 .collect::<LinkedList<_>>(),
         )
     }
-    fn blink(&self) -> Self {
-        let stones = self
-            .0
-            .iter()
-            .flat_map(|stone| {
-                // a
-                if *stone == 0 {
-                    vec![1]
-                } else {
-                    // double stones
-                    let num_digits = stone.count_digits();
-                    if num_digits % 2 == 0 {
-                        let splitter: u64 = 10u64.pow(num_digits as u32 / 2);
-                        let upper: u64 = stone / splitter;
-                        let lower: u64 = stone % splitter;
-                        vec![upper, lower]
+    fn blink(&mut self) {
+        let mut cursor = self.0.cursor_front_mut();
+        'walk: loop {
+            let mut insert = None;
+            match cursor.current() {
+                Some(stone) => {
+                    if *stone == 0 {
+                        *stone = 1;
                     } else {
-                        vec![*stone * 2024u64]
+                        // Double stone
+                        let num_digits = stone.count_digits();
+                        if num_digits % 2 == 0 {
+                            let splitter: u64 = 10u64.pow(num_digits as u32 / 2);
+                            let upper = *stone / splitter;
+                            let lower = *stone % splitter;
+                            insert = Some(upper);
+                            *stone = lower;
+                        } else {
+                            *stone *= 2024u64
+                        }
+                    }
+                    if let Some(stone) = insert {
+                        cursor.insert_before(stone);
                     }
                 }
-            })
-            .collect::<LinkedList<u64>>();
-        Self(stones)
+                None => {
+                    // A fallen off the list
+                    break 'walk;
+                }
+            }
+            cursor.move_next()
+        }
     }
 }
 
 fn main() {
     let input = include_str!("./input1.txt");
-    println!("{:?}", part1(25, input));
+    println!("{:?}", part1(75, input));
 }
 
 fn part1(n_turns: u8, input: &str) -> usize {
     let mut line = Line::into_ll(input);
 
     for _ in 0..n_turns {
-        line = line.blink();
+        line.blink();
     }
 
     line.0.len()
@@ -88,9 +100,10 @@ mod test {
         for pair in lines.windows(2) {
             let first = pair[0];
             let second = pair[1];
-            let ll0 = Line::into_ll(first);
+            let mut ll0 = Line::into_ll(first);
             let ll1 = Line::into_ll(second);
-            assert_eq!(ll0.blink(), ll1);
+            ll0.blink();
+            assert_eq!(ll0, ll1);
         }
     }
 

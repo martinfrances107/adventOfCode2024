@@ -55,3 +55,10 @@ Notes:
 ## Day 10: Hiking Routes
 
   Want to return to this problem and visualize the walk.
+
+## Day 11: Splitting Stones
+
+  A good examples of a Linked List.
+
+  part 1 just copied the list.
+  part 2 is a walker over the linked list with insertions behind.
