@@ -101,7 +101,7 @@ fn part1(input: &str) -> u32 {
 
     // Have a map of all node
     // have a list of regions -- labels
-    dbg!(&node_map);
+    // dbg!(&node_map);
     // Compute pannels
     for (key, node) in &node_map {
         let region_id = node.region_id;
@@ -116,7 +116,12 @@ fn part1(input: &str) -> u32 {
             let p = region.num_pannels;
             let n = region.node_count;
             // cost is number of pannels * number of nodes
-            n * p
+            let c = n * p;
+            println!(
+                "A region of {} plants with price {} * {} = {}",
+                region.plant_type, n, p, c
+            );
+            c
         })
         .sum();
 
