@@ -146,4 +146,19 @@ OXOXO
 OOOOO";
         assert_eq!(part1(input), 772u32);
     }
+
+    #[test]
+    fn larger() {
+        let input = r"RRRRIICCFF
+RRRRIICCCF
+VVRRRCCFFF
+VVRCCCJFFF
+VVVVCJJCFE
+VVIVCCJJEE
+VVIIICJJEE
+MIIIIIJJEE
+MIIISIJEEE
+MMMISSJEEE";
+        assert_eq!(part1(input), 772u32);
+    }
 }
