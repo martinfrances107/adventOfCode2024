@@ -73,22 +73,40 @@ fn solve_within_limit(
     //       B is the prizes.
     // x is  the number of button presses.
 
+    let prize_vec = Vector2::new(prizes.0, prizes.1);
     let offsets = Matrix2::new(offsets_a.0, offsets_b.0, offsets_a.1, offsets_b.1);
-    let p = Vector2::new(prizes.0, prizes.1);
-    if let Some(inverse) = offsets.try_inverse() {
-        let solution = inverse * p;
-        // when  solution is (40.0000001, 5.0000001)
-        // Solution is an integer pair
-        let a = solution.x.round() as u32;
-        let b = solution.y.round() as u32;
 
-        if a > 100 || b > 100 {
-            None
-        } else {
-            Some((a, b))
-        }
-    } else {
+    let det_offsets = offsets.determinant();
+
+    let mut a_zero = offsets.clone();
+
+    a_zero.set_column(0, &prize_vec);
+    let det_a_zero = a_zero.determinant();
+
+    let mut a_one = offsets;
+    a_one.set_column(1, &prize_vec);
+    let det_a_one = a_one.determinant();
+
+    let solution_zero = det_a_zero / det_offsets;
+    let solution_one = det_a_one / det_offsets;
+
+    if solution_zero < 0. {
+        return None;
+    }
+    if solution_one < 0. {
+        return None;
+    }
+
+    if solution_zero.fract() != 0. {
+        return None;
+    }
+    if solution_zero.fract() != 0. {
+        return None;
+    }
+    if solution_zero > 100. || solution_one > 100. {
         None
+    } else {
+        Some((solution_zero as u32, solution_one as u32))
     }
 }
 
@@ -99,16 +117,14 @@ fn part1(input: &str) -> u32 {
         .iter()
         .map(|(offsets_a, offsets_b, prizes)| {
             // Return the cost of beating the machine.
-            let cost = if let Some((a, b)) = solve_within_limit(offsets_a, offsets_b, prizes) {
+            if let Some((a, b)) = solve_within_limit(offsets_a, offsets_b, prizes) {
                 // cost is 3 tokens to push A.
                 // cost is 1 token to push B.
                 a * 3 + b
             } else {
                 // Dont play the machine.
                 0
-            };
-            dbg!(cost);
-            cost
+            }
         })
         .sum()
 }
