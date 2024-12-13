@@ -74,4 +74,10 @@ Notes:
 
 ## Day 13 Claw contraption
 
-  matrix inversion
+  matrix inversion using cramer rule.
+
+  part2 was a tricky test of number conversion.
+
+  1) u64 has to used to parse large numbers.
+  2) Converted in a f64 for processing
+  3) Converted back into u64 for summation.

@@ -8,9 +8,9 @@ edition = "2021"
 name = "part1"
 test = true
 
-# [[bin]]
-# name = "part2"
-# test = true
+[[bin]]
+name = "part2"
+test = true
 
 [dependencies]
 nalgebra = "0.33.2"
