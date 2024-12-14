@@ -85,3 +85,10 @@ Notes:
 ## Day 14: Bathroom Tree
 
   A good use of rem_euclid() for modulo arithmetic.
+
+  part2 is a really tricky one.
+
+  I outputted the map frame by frame and it look like snow
+  I reasoned that the easter egg must have structure unlike the snow
+  so I stopped when there was a line of 10 robots in a row
+  (I tried 4, 6 first but I new as I was on the right track as 4 and 6 were rare.)
