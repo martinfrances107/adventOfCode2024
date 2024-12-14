@@ -81,3 +81,7 @@ Notes:
   1) u64 has to used to parse large numbers.
   2) Converted in a f64 for processing
   3) Converted back into u64 for summation.
+
+## Day 14: Bathroom Tree
+
+  A good use of rem_euclid() for modulo arithmetic.
