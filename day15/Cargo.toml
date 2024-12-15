@@ -1,0 +1,14 @@
+[package]
+name = "day15"
+version = "0.1.0"
+edition = "2021"
+
+
+[[bin]]
+name = "part1"
+test = true
+
+
+[dependencies]
+glam.workspace = true
+nom = { workspace = true }
