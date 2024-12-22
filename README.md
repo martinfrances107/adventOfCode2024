@@ -92,3 +92,9 @@ Notes:
   I reasoned that the easter egg must have structure unlike the snow
   so I stopped when there was a line of 10 robots in a row
   (I tried 4, 6 first but I new as I was on the right track as 4 and 6 were rare.)
+
+## Day 15: Fish Warehouse
+
+## Day 17: Simple CPU
+
+  A interesting exercise.
