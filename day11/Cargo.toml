@@ -12,6 +12,13 @@ test = true
 name = "part2"
 test = true
 
+[[bin]]
+name = "part2_ref"
+test = true
+
 [dependencies]
 count-digits = "0.5.1"
 nom = { workspace = true }
+miette = "7.4.0"
+num-traits = "0.2.19"
+tracing = "0.1.41"

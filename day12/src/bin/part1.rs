@@ -1,5 +1,5 @@
 use core::num;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 // row, col
 static DIRECTION: [[i32; 2]; 4] = [
@@ -25,77 +25,109 @@ struct RegionLabel {
     node_count: u32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Node {
     plant_type: PlantType,
-    region_id: usize,
-    connection_count: u32,
-    row: usize,
-    col: usize,
+    connections: Vec<(i32, i32)>,
+    pos: (i32, i32),
 }
 
+#[derive(Debug)]
+struct Region {
+    plantType: PlantType,
+    nodes: HashSet<(i32, i32)>,
+}
 fn part1(input: &str) -> u32 {
-    let mut char_map: Vec<Vec<char>> = vec![];
+    // Bare in the sense connections unfilled.
+    let mut node_map_bare = HashMap::<(i32, i32), Node>::default();
+    // Define unconnected node map.
     for (row, line) in input.lines().enumerate() {
-        char_map.push(vec![]);
-        for c in line.chars() {
-            char_map[row].push(c);
+        for (col, c) in line.chars().enumerate() {
+            node_map_bare.insert(
+                (row as i32, col as i32),
+                Node {
+                    plant_type: c,
+                    connections: vec![],
+                    pos: (row as i32, col as i32),
+                },
+            );
         }
     }
 
-    let mut regions: Vec<RegionLabel> = vec![];
-    let mut node_map = HashMap::<(i32, i32), Node>::default();
-    for (row, line) in char_map.iter().enumerate() {
-        for (col, c) in line.iter().enumerate() {
-            let mut new_node: Option<Node> = None;
-            for d in DIRECTION {
-                let search_row = row as i32 + d[0];
-                let search_col = col as i32 + d[1];
-                let search_key = (search_row, search_col);
-                if let Some(search_node) = node_map.get_mut(&search_key) {
-                    if *c == search_node.plant_type {
-                        // Region identified.
-                        let region_id = search_node.region_id;
-                        search_node.connection_count += 1;
-                        if let Some(ref mut node) = new_node {
-                            node.connection_count += 1;
-                        } else {
-                            new_node = Some(Node {
-                                plant_type: *c,
-                                region_id,
-                                connection_count: 1,
-                                row: row as usize,
-                                col: col as usize,
-                            });
+    let mut node_map = node_map_bare.clone();
+    // Make all connections.
+    for ((row, col), node) in node_map.iter_mut() {
+        for d in DIRECTION {
+            let search_row = row + d[0];
+            let search_col = col + d[1];
+            let search_key = (search_row, search_col);
+            if let Some(search_node) = node_map_bare.get(&search_key) {
+                if node.plant_type == search_node.plant_type {
+                    // Edge detected
+                    // println!(
+                    //     "edge detected ({},{}) -> ({}, {})",
+                    //     row, col, search_row, search_col
+                    // );
+                    node.connections.push(search_key);
+                }
+            }
+        }
+    }
+
+    let node_map_a = node_map
+        .iter()
+        .filter(|(pos, n)| {
+            // a
+            n.plant_type == 'A'
+        })
+        .collect::<Vec<_>>();
+
+    dbg!(&node_map_a);
+    let mut regions: Vec<Region> = vec![];
+
+    // While there are node in the node_map
+    // removed them one by one and add them to the correct regions.
+    for (active_pos, active_node) in node_map.drain() {
+        // Use connections to locate the region.
+        let mut place_found = None;
+        for connection in &active_node.connections {
+            // Where should the node be placed.
+            'region_search: for (idx, region) in regions.iter().enumerate() {
+                if region.nodes.contains(connection) {
+                    place_found = Some(idx);
+                    break 'region_search;
+                }
+            }
+        }
+        if let Some(region_index) = place_found {
+            let mut connection_pool: HashSet<(i32, i32)> = HashSet::default();
+            // prime the connection pool
+            for connection in active_node.connections {
+                // get the node
+                connection_pool.insert(connection);
+            }
+            'connections_walk: loop {
+                // check all items in the connection pool until no more are added.
+                let mut more_found = false;
+                for connection in connection_pool.iter() {
+                    if let Some(cn) = node_map.get(connection) {
+                        if connection_pool.contains(&cn.pos) {
+                            more_found = true;
                         }
                     }
                 }
             }
-
-            if let Some(node) = new_node {
-                node_map.insert((row as i32, col as i32), node);
-            } else {
-                // Add a new node.
-                node_map.insert(
-                    (row as i32, col as i32),
-                    Node {
-                        plant_type: *c,
-                        region_id: regions.len(),
-                        connection_count: 0,
-                        row: row as usize,
-                        col: col as usize,
-                    },
-                );
-
-                // Start a new region.
-                regions.push(RegionLabel {
-                    plant_type: *c,
-                    start_row: row as usize,
-                    start_col: col as usize,
-                    num_pannels: 0,
-                    node_count: 0,
-                });
+        } else {
+            // Start a new region
+            let mut region = Region {
+                plantType: active_node.plant_type,
+                nodes: HashSet::default(),
+            };
+            region.nodes.insert(active_pos);
+            for connection in active_node.connections {
+                region.nodes.insert(connection);
             }
+            regions.push(region);
         }
     }
 
@@ -103,30 +135,35 @@ fn part1(input: &str) -> u32 {
     // have a list of regions -- labels
     // dbg!(&node_map);
     // Compute pannels
-    for (key, node) in &node_map {
-        let region_id = node.region_id;
-        let num_pannels = 4 - node.connection_count;
-        regions[region_id].node_count += 1;
-        regions[region_id].num_pannels += num_pannels;
-    }
+    // for (key, node) in &node_map {
+    //     let region_id = node.region_id;
+    //     let num_pannels = 4 - node.connection_count;
+    //     regions[region_id].node_count += 1;
+    //     regions[region_id].num_pannels += num_pannels;
+    // }
 
-    let total_cost = regions
+    // let total_cost = regions
+    //     .iter()
+    //     .map(|region| {
+    //         let p = region.num_pannels;
+    //         let n = region.node_count;
+    //         // cost is number of pannels * number of nodes
+    //         let c = n * p;
+    //         println!(
+    //             "A region of {} plants with price {} * {} = {}",
+    //             region.plant_type, n, p, c
+    //         );
+    //         c
+    //     })
+    //     .sum();
+
+    let r_A = regions
         .iter()
-        .map(|region| {
-            let p = region.num_pannels;
-            let n = region.node_count;
-            // cost is number of pannels * number of nodes
-            let c = n * p;
-            println!(
-                "A region of {} plants with price {} * {} = {}",
-                region.plant_type, n, p, c
-            );
-            c
-        })
-        .sum();
+        .filter(|r| r.plantType == 'A')
+        .collect::<Vec<_>>();
+    dbg!(&r_A);
 
-    dbg!(&regions);
-    total_cost
+    0
 }
 
 #[cfg(test)]

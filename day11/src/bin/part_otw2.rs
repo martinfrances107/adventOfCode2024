@@ -18,7 +18,7 @@ impl Display for Line {
     }
 }
 impl Line {
-    fn new(input: &str) -> Self {
+    fn into_ll(input: &str) -> Self {
         Self(
             input
                 .split_ascii_whitespace()
@@ -67,7 +67,7 @@ fn main() {
 }
 
 fn part1(n_turns: u8, input: &str) -> usize {
-    let mut line = Line::new(input);
+    let mut line = Line::into_ll(input);
 
     for _ in 0..n_turns {
         line.blink();
@@ -100,8 +100,8 @@ mod test {
         for pair in lines.windows(2) {
             let first = pair[0];
             let second = pair[1];
-            let mut ll0 = Line::new(first);
-            let ll1 = Line::new(second);
+            let mut ll0 = Line::into_ll(first);
+            let ll1 = Line::into_ll(second);
             ll0.blink();
             assert_eq!(ll0, ll1);
         }
