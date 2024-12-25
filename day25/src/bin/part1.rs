@@ -111,8 +111,8 @@ fn part1(input: &str) -> u32 {
     if let Ok((_, jumble)) = parse_diagrams(input) {
         let (locks, keys): (Vec<Schematic>, Vec<Schematic>) =
             jumble.into_iter().partition_map(|x| match x {
-                Schematic::Lock(guts) => Either::Left(Schematic::Lock(guts)),
-                Schematic::Key(guts) => Either::Right(Schematic::Key(guts)),
+                Schematic::Lock(..) => Either::Left(x),
+                Schematic::Key(..) => Either::Right(x),
             });
 
         let mut matches = vec![];
