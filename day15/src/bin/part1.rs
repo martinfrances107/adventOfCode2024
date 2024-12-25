@@ -88,7 +88,7 @@ impl Display for Direction {
 struct Warehouse {
     n_rows: usize,
     n_cols: usize,
-    map: HashMap<IVec2, Object>,
+    map: Vec<Vec<Object>>,
     player_pos: IVec2,
     direction: HashMap<Direction, (IVec2, IVec2)>,
 }
@@ -103,13 +103,14 @@ impl Warehouse {
         direction.insert(Direction::W, (IVec2::new(0, -1), IVec2::new(0, -2)));
 
         let mut player_pos = IVec2::new(0, 0);
-        let mut map = HashMap::new();
+        let mut map = vec![];
 
         let mut n_rows = 0;
         let mut n_cols = 0;
         for (row, line) in input.lines().enumerate() {
             n_rows += 1;
             n_cols = 0;
+            map[row] = vec![];
             for (col, c) in line.chars().enumerate() {
                 n_cols += 1;
                 let o = match c {
@@ -122,7 +123,7 @@ impl Warehouse {
                     '.' => Object::Blank,
                     _ => panic!("bad decode"),
                 };
-                map.insert(IVec2::new(row as i32, col as i32), o);
+                map[row].push(o);
             }
         }
         dbg!(n_cols);

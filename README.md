@@ -98,3 +98,11 @@ Notes:
 ## Day 17: Simple CPU
 
   A interesting exercise.
+
+## Day 23: LAN party
+
+<htps://en.wikipedia.org/wiki/Clique_problem>
+
+## Day 25: Lock and Key
+
+A enjoyable puzzle.
