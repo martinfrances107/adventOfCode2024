@@ -22,18 +22,18 @@ enum Element {
 }
 
 #[derive(Clone, Debug)]
-enum XRay {
+enum Schematic {
     Lock(Vec<Vec<Element>>),
     Key(Vec<Vec<Element>>),
 }
 
-impl XRay {
+impl Schematic {
     // pin heights or lock heights
     fn heights(&self) -> Vec<u8> {
         let mut out = vec![0, 0, 0, 0, 0];
         let inerds = match self {
-            XRay::Lock(inerds) => inerds,
-            XRay::Key(inerds) => inerds,
+            Schematic::Lock(inerds) => inerds,
+            Schematic::Key(inerds) => inerds,
         };
 
         for r in inerds {
@@ -66,10 +66,10 @@ fn parse_innards(input: &str) -> IResult<&str, Vec<Vec<Element>>> {
     count(parse_row, 5)(input)
 }
 
-fn parse_lock(input: &str) -> IResult<&str, XRay> {
+fn parse_lock(input: &str) -> IResult<&str, Schematic> {
     map(delimited(parse_blocked, parse_innards, parse_open), |x| {
         println!("parse lock");
-        XRay::Lock(x)
+        Schematic::Lock(x)
     })(input)
 }
 
@@ -81,43 +81,40 @@ fn parse_open(input: &str) -> IResult<&str, (&str, &str)> {
     tuple((tag("....."), line_ending))(input)
 }
 
-fn parse_key(input: &str) -> IResult<&str, XRay> {
+fn parse_key(input: &str) -> IResult<&str, Schematic> {
     map(delimited(parse_open, parse_innards, parse_blocked), |x| {
-        XRay::Key(x)
+        Schematic::Key(x)
     })(input)
 }
 
-// xray - A xray of a lock or a key.
-fn parse_xray(input: &str) -> IResult<&str, XRay> {
+fn parse_schematic(input: &str) -> IResult<&str, Schematic> {
     alt((parse_key, parse_lock))(input)
 }
 
-fn parse_diagrams(input: &str) -> IResult<&str, Vec<XRay>> {
-    separated_list0(line_ending, parse_xray)(input)
+fn parse_diagrams(input: &str) -> IResult<&str, Vec<Schematic>> {
+    separated_list0(line_ending, parse_schematic)(input)
 }
 
-fn overlap(lock: &XRay, key: &XRay) -> bool {
+fn overlap(lock: &Schematic, key: &Schematic) -> bool {
     let l_h = lock.heights();
     let k_h = key.heights();
     for (l, h) in l_h.iter().zip(k_h) {
-        if l + h > 5 {
+        if l + h < 5 {
             return true;
         }
     }
 
-    return false;
+    false
 }
 
 fn part1(input: &str) -> u32 {
     if let Ok((_, jumble)) = parse_diagrams(input) {
-        // dbg!(&jumble);
-        // panic!("jumble");
-        let (locks, keys): (Vec<XRay>, Vec<XRay>) = jumble.into_iter().partition_map(|x| match x {
-            XRay::Lock(guts) => Either::Left(XRay::Lock(guts)),
-            XRay::Key(guts) => Either::Right(XRay::Key(guts)),
-        });
-        // dbg!(&locks);
-        // dbg!(&keys);
+        let (locks, keys): (Vec<Schematic>, Vec<Schematic>) =
+            jumble.into_iter().partition_map(|x| match x {
+                Schematic::Lock(guts) => Either::Left(Schematic::Lock(guts)),
+                Schematic::Key(guts) => Either::Right(Schematic::Key(guts)),
+            });
+
         let mut matches = vec![];
         for (lock, key) in locks.into_iter().cartesian_product(keys) {
             if overlap(&lock, &key) {
@@ -168,9 +165,9 @@ mod test {
 .....
 ";
 
-        let is_lock = match parse_xray(input) {
-            Ok((_remain, XRay::Lock(_))) => true,
-            Ok((_remain, XRay::Key(_))) => {
+        let is_lock = match parse_schematic(input) {
+            Ok((_remain, Schematic::Lock(_))) => true,
+            Ok((_remain, Schematic::Key(_))) => {
                 println!("key!!!");
                 true
             }
@@ -182,7 +179,7 @@ mod test {
         };
         assert!(is_lock);
 
-        if let Ok((_remain, xray)) = parse_xray(input) {
+        if let Ok((_remain, xray)) = parse_schematic(input) {
             assert_eq!(xray.heights(), vec![0, 5, 3, 4, 3]);
         }
     }
@@ -198,9 +195,9 @@ mod test {
 #####
 ";
 
-        let is_key = match parse_xray(input) {
-            Ok((_remain, XRay::Key(_))) => true,
-            Ok((_remain, XRay::Lock(_))) => false,
+        let is_key = match parse_schematic(input) {
+            Ok((_remain, Schematic::Key(_))) => true,
+            Ok((_remain, Schematic::Lock(_))) => false,
             Err(e) => {
                 println!("err!!!");
                 println!("{e}");
@@ -210,7 +207,7 @@ mod test {
 
         assert!(is_key);
 
-        if let Ok((_remain, xray)) = parse_xray(input) {
+        if let Ok((_remain, xray)) = parse_schematic(input) {
             assert_eq!(xray.heights(), vec![5, 0, 2, 1, 3]);
         }
     }
